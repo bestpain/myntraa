@@ -1,17 +1,18 @@
 import React from "react";
 import "./App.css";
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, Redirect } from "react-router-dom";
 import Homepage from "./pages/homepage/homepage.component";
 import Shop from "./pages/shop/shop.component";
 import Header from "./components/header/header.component";
 import SignInAndSignUpPage from "./pages/sign-in-and-sign-up/sign-in-and-sign-up.component";
+import { connect } from "react-redux";
+
+import { setCurrentUser, clearCurrentUser } from "./redux/user/user.actions"; 
 
 class App extends React.Component {
-  state = {
-    userId: "",
-    name: "Quest",
-    signedIn: false,
-  };
+  constructor(props) {
+    super(props);
+  }
 
   componentDidMount() {
     window.gapi.load("auth2", () => {
@@ -22,11 +23,8 @@ class App extends React.Component {
         })
         .then(() => {
           this.GoogleAuth = window.gapi.auth2.getAuthInstance(); //get the google auth instance
+          this.onAuthChange(this.GoogleAuth.isSignedIn.get()); //stores the current signed in user to state or store
           this.GoogleAuth.isSignedIn.listen(this.onAuthChange); //setting up a listener which starts all soon our button get clicked
-          this.setState({
-            userId: this.GoogleAuth.currentUser.get().getId(),
-            signedIn: this.GoogleAuth.isSignedIn.get(),
-          });
         });
     });
   }
@@ -36,23 +34,15 @@ class App extends React.Component {
   onAuthChange = (isSignedIn) => {
     //if user sign in
     if (isSignedIn) {
-      this.setState({
-        userId: this.GoogleAuth.currentUser.get().getId(),
-        name: this.GoogleAuth.currentUser.get().Qt.nW,
-        signedIn: this.GoogleAuth.isSignedIn.get(),
-      });
+      //dispatch action to store google user to store
+      this.props.setCurrentUser(this.GoogleAuth.currentUser.get().getId());
     } else {
-      //if user signOuts
-      this.setState({
-        userId: "",
-        name: "Quest",
-        signedIn: this.GoogleAuth.isSignedIn.get(),
-      });
+      //if user signOuts clear the store auth reducer
+      this.props.clearCurrentUser();
     }
   };
 
-  signIn = (event) => {
-    event.preventDefault();
+  signIn = () => {
     this.GoogleAuth.signIn();
   };
 
@@ -63,17 +53,22 @@ class App extends React.Component {
   componentWillUnmount() {
     this.unsubscribeFromAuth(); //remove google auth listerner to save memory leak
   }
-
   render() {
     return (
       <div>
-        <Header status={this.state.signedIn} signOut={this.signOut} />
+        <Header signOut={this.signOut} />
         <Switch>
           <Route exact path="/" component={Homepage} />
           <Route exact path="/shop" component={Shop} />
           <Route
             path="/signin"
-            render={() => <SignInAndSignUpPage signIn={this.signIn} />}
+            render={() =>
+              this.props.user ? (
+                <Redirect to="/" />
+              ) : (
+                <SignInAndSignUpPage signIn={this.signIn} />
+              )
+            }
           />
         </Switch>
       </div>
@@ -81,4 +76,13 @@ class App extends React.Component {
   }
 }
 
-export default App;
+const mapStateToProps = ({ user }) => {
+  return { user: user.currentUser };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  setCurrentUser: (user) => dispatch(setCurrentUser(user)),
+  clearCurrentUser: () => dispatch(clearCurrentUser()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
