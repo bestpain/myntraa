@@ -14,3 +14,8 @@ ReactDOM.render(
   </Provider>,
   document.getElementById("root")
 );
+
+
+//after login when user visits "/signin" then it shows signin component for a sec which could be avoided by using react suspense. 
+
+//2.when loading '/shop' renders two times bcz app.js state chnages

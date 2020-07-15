@@ -6,14 +6,12 @@ import Shop from "./pages/shop/shop.component";
 import Header from "./components/header/header.component";
 import SignInAndSignUpPage from "./pages/sign-in-and-sign-up/sign-in-and-sign-up.component";
 import { connect } from "react-redux";
-
-import { setCurrentUser, clearCurrentUser } from "./redux/user/user.actions"; 
+import { selectCurrentUser } from "./redux/user/user.selector";
+import { createStructuredSelector } from "reselect";
+import { setCurrentUser, clearCurrentUser } from "./redux/user/user.actions";
+import CheckOut from "./pages/checkout/checkout.component";
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   componentDidMount() {
     window.gapi.load("auth2", () => {
       window.gapi.auth2
@@ -60,6 +58,7 @@ class App extends React.Component {
         <Switch>
           <Route exact path="/" component={Homepage} />
           <Route exact path="/shop" component={Shop} />
+          <Route exact path="/checkout" component={CheckOut} />
           <Route
             path="/signin"
             render={() =>
@@ -76,9 +75,9 @@ class App extends React.Component {
   }
 }
 
-const mapStateToProps = ({ user }) => {
-  return { user: user.currentUser };
-};
+const mapStateToProps = createStructuredSelector({
+  user: selectCurrentUser,
+});
 
 const mapDispatchToProps = (dispatch) => ({
   setCurrentUser: (user) => dispatch(setCurrentUser(user)),
