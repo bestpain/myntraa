@@ -13,10 +13,7 @@ export const removeItemFromCart = (cartItems, itemToRemove) => {
 };
 
 export const removeItemByOneQuantity = (cartItems, itemToRemove) => {
-  const existingCartItem = cartItems.find((item) => item.id === itemToRemove);
-  if (existingCartItem) {
-    return cartItems.map((item) =>
-      item.id === itemToRemove ? { ...item, quantity: item.quantity - 1 } : item
-    );
-  }
+  return cartItems.map((item) =>
+    item.id === itemToRemove ? { ...item, quantity: item.quantity - 1 } : item
+  );
 };
